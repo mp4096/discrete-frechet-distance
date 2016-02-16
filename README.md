@@ -1,8 +1,7 @@
 ## Discrete Frechét distance
 Compute the discrete Frechét distance [1] between two curves specified by ordered discrete points in _n_-dimensional space according to algorithm in [2].
 
-The implementation is based on MATLAB function by Zachary Danziger [3].
-This function is 10 to 50 times as fast as [3] at the cost of computing only the DFD (no coupling sequence).
+The implementation is based on MATLAB function by Zachary Danziger [3]; however, it does not provide computation of coupling sequence. Depending on the number of points and the number of dimensions, this MEX function is 10 to 50 times as fast as [3].
 
 ### Installation
 Open the repo directory in MATLAB and type
@@ -22,9 +21,9 @@ savepath
 x1 = linspace(-2, 2, 200);
 y1 = x1.^2 + 0.2.*x1 + 2;
 
-t3 = linspace(0, 4, 300);
-x2 = 8.*sin(0.1.*t3) - 1;
-y2 = 2.*cos(0.9.*t3 + 0.2) + 6;
+t2 = linspace(0, 4, 300);
+x2 = 8.*sin(0.1.*t2) - 1;
+y2 = 2.*cos(0.9.*t2 + 0.2) + 6;
 
 t3 = linspace(0, 1, 1000);
 x3 = 2.*sin(10.*t3);
