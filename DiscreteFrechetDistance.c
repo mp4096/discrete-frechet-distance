@@ -90,8 +90,11 @@ void mexFunction(int nlhs, mxArray **plhs, int nrhs, const mxArray **prhs)
     */
 
     /* Check only if dimensions of the two curves are consistent */
-    if (size_c_1[0] != size_c_2[0]) {
-        printf("Error: c_1 and c_2 must have an equal number of rows!\n");
+    if (size_c_1[0] != size_c_2[0])
+    {
+        mexErrMsgIdAndTxt(
+            "DiscreteFrechetDistance:InvalidInput",
+            "c_1 and c_2 must have the same number of rows!");
         return;
     }
 
