@@ -25,9 +25,13 @@
 */
 
 
-#include <math.h>
-#include "mex.h"
-#include "matrix.h"
+#include <math.h> /* sqrt, fabs, fmin, fmax */
+#include "mex.h" /* MEX functions and types */
+#include "matrix.h" /* mwIndex, mwSize */
+
+
+/* Declare a type for function pointers to norm functions */
+typedef double (*norm_fun_t)(mwIndex i, mwIndex j);
 
 
 /* Define functions */
@@ -36,10 +40,20 @@ void discrete_frechet_distance(double *dfd);
 /* Recursive function for computation of the coupling measure, see [1] */
 double recursive_c(mwIndex i, mwIndex j);
 /*
-* Euclidean (2-) norm between the i-th point of the 1st curve and the j-th
+* Taxicab (l^1) norm between the i-th point of the 1st curve and the j-th
+* point of the 2nd curve; i = 1, ..., n_1; j = 1, ..., n_2.
+*/
+double norm_1(mwIndex i, mwIndex j);
+/*
+* Euclidean (l^2) norm between the i-th point of the 1st curve and the j-th
 * point of the 2nd curve; i = 1, ..., n_1; j = 1, ..., n_2.
 */
 double norm_2(mwIndex i, mwIndex j);
+/*
+* Maximum (l^\infty) norm between the i-th point of the 1st curve and the
+* j-th point of the 2nd curve; i = 1, ..., n_1; j = 1, ..., n_2.
+*/
+double norm_inf(mwIndex i, mwIndex j);
 
 
 /* Define global variables */
@@ -61,6 +75,8 @@ double *ca;
 mwIndex n_1, n_2;
 /* `n_d` : Number of dimensions */
 mwIndex n_d;
+/* `nrm` : Function pointer to the desired norm function */
+norm_fun_t nrm;
 
 
 /* Entry point for the MEX interface */
@@ -68,7 +84,6 @@ void mexFunction(int nlhs, mxArray **plhs, int nrhs, const mxArray **prhs)
 {
     double *dfd; /* Return value: discrete Frechet distance */
     const mwSize *size_c_1, *size_c_2; /* Size of the input arguments*/
-
 
     /* Target the pointer to the MEX output value (LHS) */
     plhs[0] = mxCreateDoubleScalar(mxREAL);
@@ -103,6 +118,32 @@ void mexFunction(int nlhs, mxArray **plhs, int nrhs, const mxArray **prhs)
     n_2 = size_c_2[1];
     n_d = size_c_1[0];
 
+    /* Decide which norm to use */
+    if (nrhs == 2)
+    {
+        /* If no norm is explicitely specified, use the Euclidean norm */
+        nrm = &norm_2;
+    }
+    else
+    {
+        switch ((int) *mxGetPr(prhs[2]))
+        {
+            case -1: /* Maximum (l^\infty) norm */
+                nrm = &norm_inf;
+                break;
+            case 1: /* Taxicab (l^1) norm */
+                nrm = &norm_1;
+                break;
+            case 2: /* Euclidean (l^2) norm */
+                nrm = &norm_2;
+                break;
+            default: /* Throw an error */
+                mexErrMsgIdAndTxt(
+                    "DiscreteFrechetDistance:InvalidInput",
+                    "Invalid norm identifier!");
+                return;
+        }
+    }
 
     /* Call the main function */
     discrete_frechet_distance(dfd);
@@ -148,15 +189,15 @@ double recursive_c(mwIndex i, mwIndex j)
     }
     else if ((i == 1) && (j == 1))
     {
-        *ca_ij = norm_2(1, 1);
+        *ca_ij = nrm(1, 1);
     }
     else if ((i > 1) && (j == 1))
     {
-        *ca_ij = fmax(recursive_c(i - 1, 1), norm_2(i, 1));
+        *ca_ij = fmax(recursive_c(i - 1, 1), nrm(i, 1));
     }
     else if ((i == 1) && (j > 1))
     {
-        *ca_ij = fmax(recursive_c(1, j - 1), norm_2(1, j));
+        *ca_ij = fmax(recursive_c(1, j - 1), nrm(1, j));
     }
     else if ((i > 1) && (j > 1))
     {
@@ -165,7 +206,7 @@ double recursive_c(mwIndex i, mwIndex j)
                            recursive_c(i - 1, j    ),
                            recursive_c(i - 1, j - 1)),
                            recursive_c(i,     j - 1)),
-                      norm_2(i, j));
+                      nrm(i, j));
     }
     else
     {
@@ -174,6 +215,32 @@ double recursive_c(mwIndex i, mwIndex j)
     }
 
     return *ca_ij;
+}
+
+
+double norm_1(mwIndex i, mwIndex j)
+{
+    double dist, diff; /* Temp variables for simpler computations */
+    mwIndex k; /* Index for iterating over dimensions */
+
+    /* Initialise distance */
+    dist = 0.0;
+
+    for (k = 0; k < n_d; k++)
+    {
+        /*
+        * Compute the distance between the k-th component of the i-th point
+        * of the 1st curve and the k-th component of the j-th point of the
+        * 2nd curve.
+        *
+        * Notice the 1-offset added for better readability (as in [1]).
+        */
+        diff = *(c_1 + (i - 1)*n_d + k) - *(c_2 + (j - 1)*n_d + k);
+        /* Increment the accumulator variable with the absolute distance */
+        dist += fabs(diff);
+    }
+
+    return dist;
 }
 
 
@@ -201,6 +268,32 @@ double norm_2(mwIndex i, mwIndex j)
 
     /* Compute the square root for the 2-norm */
     dist = sqrt(dist);
+
+    return dist;
+}
+
+
+double norm_inf(mwIndex i, mwIndex j)
+{
+    double dist, diff; /* Temp variables for simpler computations */
+    mwIndex k; /* Index for iterating over dimensions */
+
+    /* Initialise distance */
+    dist = 0.0;
+
+    for (k = 0; k < n_d; k++)
+    {
+        /*
+        * Compute the distance between the k-th component of the i-th point
+        * of the 1st curve and the k-th component of the j-th point of the
+        * 2nd curve.
+        *
+        * Notice the 1-offset added for better readability (as in [1]).
+        */
+        diff = *(c_1 + (i - 1)*n_d + k) - *(c_2 + (j - 1)*n_d + k);
+        /* Update the current maximum  */
+        dist = fmax(dist, fabs(diff));
+    }
 
     return dist;
 }

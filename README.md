@@ -3,6 +3,8 @@ Compute the discrete Frechét distance [1] between two curves specified by order
 
 The implementation is based on MATLAB function by Zachary Danziger [3]; however, it does not provide computation of coupling sequence. Depending on the number of points and the number of dimensions, this MEX function is 10 to 50 times as fast as [3].
 
+Only the Euclidean (`l^2`), taxicab (`l^1`) and the maximum (`l^\infty`) norms can be used as distance functions (specify `2`, `1` or `-1` respectively as the third argument). If you want to use a custom distance function, please implement it in directly in the C code.
+
 ### Installation
 Open the repo directory in MATLAB and type
 ```matlab
@@ -15,6 +17,8 @@ savepath
 ```
 
 ### Usage example
+Calling syntax: `d = DiscreteFrechetDistance(c1, c2, normID)`, where `c1` and `c2` are matrices with curve points and the optional argument `normID` specifies the desired norm (distance function).
+
 :warning: In contrast to [3], this function requires that input matrices contain point coordinates in _columns_, i.e. the matrix shape should be `<number of dimensions> x <number of points in curve {1, 2}>`.
 
 ```matlab
