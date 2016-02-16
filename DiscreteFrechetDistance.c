@@ -69,6 +69,13 @@ void mexFunction(int nlhs, mxArray **plhs, int nrhs, const mxArray **prhs)
     double *dfd; /* Return value: discrete Frechet distance */
     const mwSize *size_c_1, *size_c_2; /* Size of the input arguments*/
 
+
+    /* Target the pointer to the MEX output value (LHS) */
+    plhs[0] = mxCreateDoubleScalar(mxREAL);
+    dfd = mxGetPr(plhs[0]);
+    /* Initialise it with a default value of -1.0 */
+    *dfd = -1.0;
+
     /* Store the pointer to the input arrays with curve points*/
     c_1 = mxGetPr(prhs[0]);
     c_2 = mxGetPr(prhs[1]);
@@ -93,9 +100,6 @@ void mexFunction(int nlhs, mxArray **plhs, int nrhs, const mxArray **prhs)
     n_2 = size_c_2[1];
     n_d = size_c_1[0];
 
-    /* Prepare output value */
-    plhs[0] = mxCreateDoubleScalar(mxREAL);
-    dfd = (double *) mxGetPr(plhs[0]);
 
     /* Call the main function */
     discrete_frechet_distance(dfd);
