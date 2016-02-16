@@ -1,8 +1,3 @@
-#include <math.h>
-#include "mex.h"
-#include "matrix.h"
-
-
 /*
 * Compute the discrete Frechet distance between two curves specified by
 * discrete ordered points in n-dimensional space.
@@ -30,7 +25,14 @@
 */
 
 
+#include <math.h>
+#include "mex.h"
+#include "matrix.h"
+
+
 /* Define functions */
+/* Main function for computation of the discrete Frechet distance */
+void discrete_frechet_distance(double *dfd);
 /* Recursive function for computation of the coupling measure, see [1] */
 double recursive_c(mwIndex i, mwIndex j);
 /*
@@ -38,8 +40,6 @@ double recursive_c(mwIndex i, mwIndex j);
 * point of the 2nd curve; i = 1, ..., n_1; j = 1, ..., n_2.
 */
 double norm_2(mwIndex i, mwIndex j);
-/* Main function for computation of the discrete Frechet distance */
-void discrete_frechet_distance(double *dfd);
 
 
 /* Define global variables */
@@ -51,14 +51,12 @@ void discrete_frechet_distance(double *dfd);
 * p -- point, d -- dimension
 */
 double *c_1, *c_2;
-
 /*
 * `ca` : Search array (refer to [1], Table 1, matrix `ca`)
 *
 * Memory layout: Row-major
 */
 double *ca;
-
 /* `n_1` and `n_2` : Number of points of the 1st and 2nd curves */
 mwIndex n_1, n_2;
 /* `n_d` : Number of dimensions */
@@ -125,35 +123,6 @@ void discrete_frechet_distance(double *dfd)
 }
 
 
-double norm_2(mwIndex i, mwIndex j)
-{
-    double dist, diff; /* Temp variables for simpler computations */
-    mwIndex k; /* Index for iterating over dimensions */
-
-    /* Initialise distance */
-    dist = 0.0;
-
-    for (k = 0; k < n_d; k++)
-    {
-        /*
-        * Compute the distance between the k-th component of the i-th point
-        * of the 1st curve and the k-th component of the j-th point of the
-        * 2nd curve.
-        *
-        * Notice the 1-offset added for better readability (as in [1]).
-        */
-        diff = *(c_1 + (i - 1)*n_d + k) - *(c_2 + (j - 1)*n_d + k);
-        /* Increment the accumulator variable with the squared distance */
-        dist += diff*diff;
-    }
-
-    /* Compute the square root for the 2-norm */
-    dist = sqrt(dist);
-
-    return dist;
-}
-
-
 double recursive_c(mwIndex i, mwIndex j)
 {
     double *ca_ij; /* Pointer to `ca(i, j)`, just to simplify notation */
@@ -198,4 +167,33 @@ double recursive_c(mwIndex i, mwIndex j)
     }
 
     return *ca_ij;
+}
+
+
+double norm_2(mwIndex i, mwIndex j)
+{
+    double dist, diff; /* Temp variables for simpler computations */
+    mwIndex k; /* Index for iterating over dimensions */
+
+    /* Initialise distance */
+    dist = 0.0;
+
+    for (k = 0; k < n_d; k++)
+    {
+        /*
+        * Compute the distance between the k-th component of the i-th point
+        * of the 1st curve and the k-th component of the j-th point of the
+        * 2nd curve.
+        *
+        * Notice the 1-offset added for better readability (as in [1]).
+        */
+        diff = *(c_1 + (i - 1)*n_d + k) - *(c_2 + (j - 1)*n_d + k);
+        /* Increment the accumulator variable with the squared distance */
+        dist += diff*diff;
+    }
+
+    /* Compute the square root for the 2-norm */
+    dist = sqrt(dist);
+
+    return dist;
 }
