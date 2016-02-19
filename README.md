@@ -1,9 +1,9 @@
-## Discrete Frechét distance
-Compute the discrete Frechét distance [1] between two curves specified by ordered discrete points in _n_-dimensional space according to algorithm in [2].
+## Discrete Fréchet distance
+Compute the discrete Fréchet distance [1] between two curves specified by ordered discrete points in _n_-dimensional space according to algorithm in [2].
 
 The implementation is based on MATLAB function by Zachary Danziger [3]; however, it does not provide computation of coupling sequence. Depending on the number of points and the number of dimensions, this MEX function is 10 to 50 times as fast as [3].
 
-Only the Euclidean (`l^2`), taxicab (`l^1`) and the maximum (`l^\infty`) norms can be used as distance functions (specify `2`, `1` or `-1` respectively as the third argument). If you want to use a custom distance function, please implement it in directly in the C code.
+Currently, only the Euclidean (`l^2`), taxicab (`l^1`) and the maximum (`l^\infty`) norms can be used as distance functions (specify `2`, `1` or `-1` respectively as the third argument). If you want to use a custom distance function, please implement it in directly in the C code.
 
 ### Installation
 Open the repo directory in MATLAB and type
@@ -55,8 +55,8 @@ fprintf('DFD(C3, C1) = %5.2f\n', d13);
 * Microsoft Windows SDK 7.1 seems to have problems with `fmin` and `fmax` from `math.h`. Compile this function using MinGW 4.9.2 C/C++ (TDM-GCC).
 
 ### References:
-[1] Wikipedia: [Frechét distance](https://en.wikipedia.org/wiki/Fr%C3%A9chet_distance)
+[1] Wikipedia: [Fréchet distance](https://en.wikipedia.org/wiki/Fr%C3%A9chet_distance)
 
-[2] Eiter, T. and Mannila, H.: Computing Discrete Frechét Distance. Technical Report 94/64, TU Wien, 1994; available [\[online\]](http://www.kr.tuwien.ac.at/staff/eiter/et-archive/cdtr9464.pdf).
+[2] Eiter, T. and Mannila, H.: Computing Discrete Fréchet Distance. Technical Report 94/64, TU Wien, 1994; available [\[online\]](http://www.kr.tuwien.ac.at/staff/eiter/et-archive/cdtr9464.pdf).
 
-[3] Danziger, Z.: Discrete Frechét Distance. Available [\[online\]](http://www.mathworks.com/matlabcentral/fileexchange/31922-discrete-frechet-distance).
+[3] Danziger, Z.: Discrete Fréchet Distance. Available [\[online\]](http://www.mathworks.com/matlabcentral/fileexchange/31922-discrete-frechet-distance).
